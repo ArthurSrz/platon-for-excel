@@ -34,7 +34,7 @@ if uploaded_file is not None:
 
         openai.api_key = st.secrets["API_KEY"]
         
-
+        
         client = OpenAI()
 
         response = client.chat.completions.create(
