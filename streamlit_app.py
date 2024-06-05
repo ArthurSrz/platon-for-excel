@@ -32,7 +32,7 @@ if uploaded_file is not None:
         # Print the JSON string
         print(input_data)
 
-        openai.api_key = st.secrets["API_KEY"]
+        OpenAI.api_key = st.secrets["API_KEY"]
         
         
         client = OpenAI()
