@@ -80,7 +80,7 @@ if uploaded_file is not None:
         # Print the JSON to verify
         print(json.dumps(data_json,ensure_ascii=False, indent=4))
         df_final = pd.DataFrame(data_json)
-        
+        output = io.BytesIO()
         df_final.to_excel(output, index=False, engine='xlsxwriter')
         
         # Download button
