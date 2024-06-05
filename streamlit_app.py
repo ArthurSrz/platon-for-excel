@@ -16,14 +16,81 @@ import json
 # Page title
 st.set_page_config(page_title='ML Model Building', page_icon='🤖')
 st.title('🤖 Sage comme Platon')
-uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"], key = 45)
+uploaded_file = st.file_uploader("Upload an Excel file",type=["xlsx"], key = 45)
 if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file, index_col=False)
+        df = pd.read_excel(uploaded_file, index_col=False)
+        
+        # Replace NaN values with None to match JSON format expectations
+        df = df.where(pd.notnull(df), None)
 
+        # Convert the DataFrame to a list of dictionaries (JSON format)
+        json_data = df.to_dict(orient='records')
 
+        # Convert the list of dictionaries to JSON string with escaped double quotes
+        input_data = json.dumps(json_data, ensure_ascii=False)
 
+        # Print the JSON string
+        print(input_data)
 
+        openai.api_key = st.secrets["API_KEY"]
+        
 
+        client = OpenAI()
+
+        response = client.chat.completions.create(
+          model="ft:gpt-3.5-turbo-0125:personal:sage-comme-platon:9UcSNmSh",
+          messages=[
+            {
+              "role": "system",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "I will give you a structured JSON with waste management metrics. I need you to add a libelle. Choose among this list of libelle : Total déchets MOA, OM MOA x - flux de déchets réceptionnés UVE, TVI-DID MOA x - flux de déchets réceptionnés UVE, Total Refus CS MOA - flux de déchets réceptionnés UVE, Total OM Apporteurs tiers - flux de déchets réceptionnés UVE, DAE-DIB Apporteurs tiers x - flux de déchets réceptionnés UVE, Total DASRI Apporteurs tiers - flux de déchets réceptionnés UVE, Total Boues MOA - flux de déchets réceptionnés UVE, Total déchets réceptionnés, Part déchets MOA, Total déchets assimilables HPCI, Part déchets HPCI. Also add the probability that the libelle you attached is right. "
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": input_data
+                }
+              ]
+            }
+          ],
+          temperature=0.51,
+          max_tokens=2048,
+          top_p=1,
+          frequency_penalty=0,
+          presence_penalty=0
+        )
+        response = response.choices[0].message.content
+        print(response)
+
+                # Replace NaN with null
+        data_string = re.sub(r'\bNaN\b', 'null', response)
+
+        # Unescape the string
+        data_string = data_string.replace('\\"', '"')
+
+        # Convert the string to JSON
+        data_json = json.loads(data_string)
+
+        # Print the JSON to verify
+        print(json.dumps(data_json,ensure_ascii=False, indent=4))
+        df_final = pd.DataFrame(data_json)
+        
+        df_final.to_excel(output, index=False, engine='xlsxwriter')
+        
+        # Download button
+        
+        st.download_button(
+            label="Download Processed Excel",
+            data=output,
+            file_name='processed_file.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
 
 
 
