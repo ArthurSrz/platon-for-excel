@@ -12,6 +12,7 @@ from openai import OpenAI
 import pandas as pd
 import re
 import json
+import io
 
 # Page title
 st.set_page_config(page_title='ML Model Building', page_icon='🤖')
